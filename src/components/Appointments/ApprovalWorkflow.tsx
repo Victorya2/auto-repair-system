@@ -60,21 +60,16 @@ const ApprovalWorkflow: React.FC<ApprovalWorkflowProps> = ({
     try {
       const response = await appointmentService.approveAppointment(appointmentId, approvalNotes, true);
       if (response.success) {
-        // Send success notification
-        notificationService.addNotification({
-          type: 'success',
-          title: 'Appointment Approved',
-          message: `Appointment for ${appointment.customer?.name} has been approved and work order created`,
-          priority: 'medium',
-          category: 'approval'
-        });
-        
+        // Close modal and reset form immediately after successful approval
         setShowApprovalModal(false);
         setApprovalNotes('');
         onApprovalComplete();
+      } else {
+        console.error('Appointment approval failed:', response);
       }
     } catch (error) {
       console.error('Error approving appointment:', error);
+      // Keep modal open on error so user can try again
     } finally {
       setLoading(false);
     }
@@ -88,19 +83,17 @@ const ApprovalWorkflow: React.FC<ApprovalWorkflowProps> = ({
       const response = await appointmentService.declineAppointment(appointmentId, declineReason, assignedTo, true);
 
       if (response.success) {
-        // Send follow-up task notification
-        notificationService.sendFollowUpTaskNotification(
-          appointment.customer?.name || 'Customer',
-          assignedTo || 'Sub Admin'
-        );
-        
+        // Close modal and reset form immediately after successful decline
         setShowDeclineModal(false);
         setDeclineReason('');
         setAssignedTo('');
         onApprovalComplete();
+      } else {
+        console.error('Appointment decline failed:', response);
       }
     } catch (error) {
       console.error('Error declining appointment:', error);
+      // Keep modal open on error so user can try again
     } finally {
       setLoading(false);
     }

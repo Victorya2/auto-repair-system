@@ -158,12 +158,19 @@ export default function CustomerLiveChat() {
     try {
       const response = await api.get('/chat/customer');
       if (response.data.success && response.data.data.chats.length > 0) {
-        // Use the most recent chat
-        const chatData = response.data.data.chats[0];
-        setChat(chatData);
+        // Find the most recent active chat (waiting or active status)
+        const activeChat = response.data.data.chats.find((chat: any) => 
+          chat.status === 'waiting' || chat.status === 'active'
+        );
         
-        // Join chat room for real-time updates
-        socketService.joinChat(chatData._id);
+        if (activeChat) {
+          // Use the active chat
+          setChat(activeChat);
+          socketService.joinChat(activeChat._id);
+        } else {
+          // No active chats, create a new one
+          createNewChat();
+        }
       } else {
         // No existing chats, create a new one automatically
         createNewChat();
